@@ -1,3 +1,6 @@
+//Implementation of Skew Heap
+//As described by
+//Sleator, Daniel Dominic, and Robert Endre Tarjan. "Self-adjusting heaps." SIAM Journal on Computing 15.1 (1986): 52-69.
 #include <iostream>
 #include <list>
 #include <cassert>
@@ -30,8 +33,13 @@ template<class T> class SkewHeap{
     void insert(const T& value);
     //make sh empty
     void unify(SkewHeap& sh);
+    bool empty();
     ~SkewHeap();
 };
+
+template<class T> bool SkewHeap<T>::empty(){
+    return root==0;
+}
 
 template<class T> SkewHeap<T>::SkewHeap():root(0),zero(T())
 {}
@@ -44,22 +52,22 @@ template <class T> typename SkewHeap<T>::Node* SkewHeap<T>::unify(typename SkewH
 
     if(no1Ptr->constant != zero){
         if(no1Ptr->right!=0)
-            no1Ptr->right->constant+=no1Ptr->constant;
+            no1Ptr->right->constant+= no1Ptr->constant;
         if(no1Ptr->left!=0){
-            no1Ptr->left->constant+=no1Ptr->constant;
+            no1Ptr->left->constant+= no1Ptr->constant;
         }
-        no1Ptr->value+=no1Ptr->constant;
-        no1Ptr->constant=T();
+        no1Ptr->value += no1Ptr->constant;
+        no1Ptr->constant= zero;
     }
 
     if(no2Ptr->constant != zero){
         if(no2Ptr->right!=0)
-            no2Ptr->right->constant+=no2Ptr->constant;
-        if(no1Ptr->left!=0){
-            no2Ptr->left->constant+=no2Ptr->constant;
+            no2Ptr->right->constant += no2Ptr->constant;
+        if(no2Ptr->left!=0){
+            no2Ptr->left->constant += no2Ptr->constant;
         }
-        no2Ptr->value+=no2Ptr->constant;
-        no2Ptr->constant=T();
+        no2Ptr->value += no2Ptr->constant;
+        no2Ptr->constant= zero;
     }
 
     Node *buf;
@@ -77,7 +85,9 @@ template <class T> typename SkewHeap<T>::Node* SkewHeap<T>::unify(typename SkewH
 
 template<class T> T SkewHeap<T>::findMin(){
     assert(root!=0);
-    return root->value + root->constant;
+    T ris=root->value;
+    ris+=root->constant;
+    return ris;
 }
 
 template<class T> void SkewHeap<T>::deleteMin(){
@@ -91,8 +101,8 @@ template<class T> void SkewHeap<T>::deleteMin(){
 }
 
 template<class T> void SkewHeap<T>::addConstant(const T& value){
-    assert(root!=0);
-    root->constant+=value;
+    if(root!=0)
+        root->constant=root->constant += value;
 }
 
 template<class T> void SkewHeap<T>::unify(SkewHeap& sh){
@@ -130,9 +140,17 @@ template <class T> std::ostream& operator<<(std::ostream& os, const SkewHeap<T>&
         queue.pop_front();
         if(noPtr->right!=0) queue.push_back(noPtr->right);
         if(noPtr->left!=0) queue.push_back(noPtr->left);
-        data.push_back(noPtr->value);
+        T ris=noPtr->value;
+        ris+=noPtr->constant;
+        data.push_back(ris);
     }
-    util::IO::printlnSTLCollection(data,os);
+    os<<"sh=";
+    for(typename std::list<T>::iterator it=data.begin();
+        it!=data.end();++it)
+    {
+        T a=*it;
+        os<<(a)<<" ";
+    }
     return os;
 }
 
